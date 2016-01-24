@@ -11,7 +11,7 @@ cd ~;
 mkdir src;
 cd ~/src;
 sudo wget https://github.com/Itseez/opencv/archive/2.4.11.zip;
-sudo unzip ./opencv-2.4.11.zip;
+sudo unzip ./2.4.11.zip;
 cd opencv-2.4.11;
 echo "Enter the valid options into CMake Gui, and press generate"
 sudo cmake-gui;
