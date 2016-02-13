@@ -6,22 +6,35 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
-#include <pthread.h>
-
 //Local files
-#include "./include/VisualUtils.h"
-#include "./include/projectile.h"
-#include "./include/launcher.h"
-#include "./include/errorList.h"
+#include "VisualUtils.h"
+#include "errorList.h"
+
+
 
 using namespace cv;
 using namespace std;
 
-int main(int argc, char *argv[]) {
-    if (argc <= 1) {
-        initModule_features2d();
+int image(string LOCATION);
+int camera();
 
-        bool die(false);
+int main(int argc, char *argv[]) {	
+	if (argc <= 1) 
+		return camera();
+    	else if (argc > 1) 
+	   	return image(argv[1]);
+    	else 
+		cerr << "Error! Invalid Input!" << endl;
+}
+
+
+int camera() {
+initModule_features2d();
+
+        bool die = false;
+string filename("snapshot");
+	string suffix(".png");
+	int i_snap(0), iter(0);
         vector < vector <Point> > contours;
         vector<Rect > boundRect;
         Mat frame(Size(480, 360), CV_8UC3, Scalar(0));
@@ -33,14 +46,16 @@ int main(int argc, char *argv[]) {
             return -1;
         }
         namedWindow("Output", CV_WINDOW_AUTOSIZE);
+	cout << "Camera opened Successfully" << endl;
         while (die == false) {
+		cout << frame.size() << endl;
             bool rSuccess = cap.read(frame);
             if (!rSuccess)
             {
                 cout << "Cannot Read Frame" << endl;
                 return -1;
             }
-
+	    cout << "Frame Successfully Read" << endl;
             imshow("Output", frame);
 
             //Matrixes to be converted or modified
@@ -52,7 +67,7 @@ int main(int argc, char *argv[]) {
             frame.copyTo(PostFrame);
             frame.copyTo(HSVMat);
             cvtColor(HSVMat, HSVMat, CV_RGB2HSV);
-
+		cout << "Mats Copied to" << endl;
             //Define variables to be used in the thresholding process
             Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (0, 230, 0));
             Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (255, 255, 255));
@@ -62,16 +77,33 @@ int main(int argc, char *argv[]) {
             Threshold(ThreshMat, HSVMin, HSVMax, frame);
             contours = edgeDetect(ThreshMat, Scalar(0, 255, 0), PostFrame);
             boundRect = ShowTargets(contours, PostFrame);
-
-            PostFrame2 = getLeftRight(PostFrame, 1, Scalar(0,255,0), 1, boundRect);
-            imshow ("Post", PostFrame);
+ 		imshow ("Output", PostFrame);
+		cout << "Processing Done" << endl;
+           PostFrame2 = getLeftRight(PostFrame, 0.5, 30, Scalar(0,255,0), 1, boundRect);
+	imshow ("Output2", PostFrame2);
+           char k = cvWaitKey(5);
+		if (k == 8) {
+			std::ostringstream file;
+			file << filename << i_snap << suffix;
+			cv::imwrite(file.str(), frame);
+			i_snap++;
+		}
+		if (iter >= 100000000)
+			break;
+		iter++;
 
             }
-        return 0;
+   return 0;     
 
-    }
-    else if (argc > 1) {
-        initModule_features2d();
+    
+}
+
+int image(string LOCATION) {
+	if (LOCATION.size() == 0) {
+		cerr << "ERROR! NO LOCATION PROVIDED!" << endl;
+		exit (1);		
+	}	
+     	initModule_features2d();
         bool finishedLoop = false;
         int i_snap(0);
         bool die = false;
@@ -79,17 +111,8 @@ int main(int argc, char *argv[]) {
         string suffix(".png");
         vector < vector <Point> > contours;
         vector<Rect > boundRect;
-        string LOCATION;
         Mat frame(Size(640, 400), CV_8UC3, Scalar(0));
-        namedWindow("Output", CV_WINDOW_AUTOSIZE);
-        try {
-            LOCATION = string(argv[1]);
-            throw string("Failed to Validate input");
-        }
-        catch (string e) {
-            cout << e << endl;
-
-        }
+        //namedWindow("Output", CV_WINDOW_AUTOSIZE);
 
         try {
             frame = imread(LOCATION, CV_LOAD_IMAGE_COLOR);
@@ -134,7 +157,7 @@ int main(int argc, char *argv[]) {
             frame.copyTo(HSVMat);
 
             //cvtColor(frame, HSVMat, CV_RGB2HSV);
-
+	
             Mat HSVMin(Size(640, 400), CV_8UC3, Scalar (0, 230, 0));
             Mat HSVMax(Size(640, 400), CV_8UC3, Scalar (255, 255, 255));
             Mat ThreshMat(Size(640, 400), CV_8U, Scalar(0));
@@ -142,16 +165,19 @@ int main(int argc, char *argv[]) {
             Threshold(ThreshMat, HSVMin, HSVMax, HSVMat);
             contours = edgeDetect(ThreshMat, Scalar(0, 255, 0), PostFrame);
             boundRect = ShowTargets(contours, PostFrame);
-                cout << "NUM OF RECTS IS EQU TO " << boundRect.size() << endl;
-
-
-            PostFrame2 = getLeftRight(PostFrame, 1, Scalar(0,255,0), 1, boundRect);
-if (!finishedLoop){
+		#ifdef DEBUG
+		for (unsigned int i = 0; i < boundRect.size(); i++) {
+			cout << "(Top Left) " <<  i << ") "<<boundRect[i].tl().x << "," << boundRect[i].tl().y << endl;
+			cout <<  "(Bottom Right) "<< i << ") "<<boundRect[i].br().x << "," << boundRect[i].br().y << endl;	
+		}
+		#endif
+    	    PostFrame2 = getLeftRight(PostFrame, 0.5, 20, Scalar(0,255,0), 1, boundRect);
+	    if (!finishedLoop){
             imwrite(LOCATION, PostFrame);
             finishedLoop = true;
-    }
+		}
+		cout << boundRect.size() << " RECTANGLES DETECTED" << endl;
             imshow ("Post", PostFrame);
-            //imshow ("Post2", PostFrame2);
             char k = cvWaitKey(5);
             if (k == 8) {
                 std::ostringstream file;
@@ -162,9 +188,9 @@ if (!finishedLoop){
 
 
         }
-              return 0;
+	return 0;
+              
      }
-    else {
-        cerr << "Error! Invalid Input!" << endl;
-    }
-}
+
+
+
