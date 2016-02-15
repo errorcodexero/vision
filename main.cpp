@@ -14,7 +14,7 @@
 
 using namespace cv;
 using namespace std;
-
+vector <KeyPoint> blobDetect (Mat _mFrame, Scalar _sColor, Mat _mOutFrame);
 int image(string LOCATION);
 int camera();
 
@@ -32,11 +32,12 @@ int camera() {
 initModule_features2d();
 
         bool die = false;
-string filename("snapshot");
+	string filename("snapshot");
 	string suffix(".png");
 	int i_snap(0), iter(0);
         vector < vector <Point> > contours;
         vector<Rect > boundRect;
+	vector <KeyPoint> keypoints;
         Mat frame(Size(480, 360), CV_8UC3, Scalar(0));
         VideoCapture cap ("http://root:1425@10.14.25.17/mjpg/video.mjpg?dummy=video.mjpg");
 
@@ -48,15 +49,16 @@ string filename("snapshot");
         namedWindow("Output", CV_WINDOW_AUTOSIZE);
 	cout << "Camera opened Successfully" << endl;
         while (die == false) {
-		cout << frame.size() << endl;
             bool rSuccess = cap.read(frame);
             if (!rSuccess)
             {
                 cout << "Cannot Read Frame" << endl;
                 return -1;
             }
+		#ifdef DEBUG
 	    cout << "Frame Successfully Read" << endl;
-            imshow("Output", frame);
+		#endif            
+		imshow("Output", frame);
 
             //Matrixes to be converted or modified
             Mat HSVMat(Size(480, 360), CV_8UC3, Scalar (0));
@@ -67,20 +69,31 @@ string filename("snapshot");
             frame.copyTo(PostFrame);
             frame.copyTo(HSVMat);
             cvtColor(HSVMat, HSVMat, CV_RGB2HSV);
+		#ifdef DEBUG
 		cout << "Mats Copied to" << endl;
+		#endif
             //Define variables to be used in the thresholding process
-            Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (0, 230, 0));
-            Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (255, 255, 255));
+	    Mat HSVFrame(Size(480, 360), CV_8UC3, Scalar (105, 200, 200));       
+	    Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (105, 200, 200));
+            Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (135, 255, 255));
             Mat ThreshMat(Size(480, 360), CV_8U, Scalar(0));
+	    cvtColor(frame, HSVFrame, CV_RGB2HSV);
 
             //Begin the Processing
-            Threshold(ThreshMat, HSVMin, HSVMax, frame);
+            Threshold(ThreshMat, HSVMin, HSVMax, HSVFrame);
             contours = edgeDetect(ThreshMat, Scalar(0, 255, 0), PostFrame);
             boundRect = ShowTargets(contours, PostFrame);
- 		imshow ("Output", PostFrame);
-		cout << "Processing Done" << endl;
-           PostFrame2 = getLeftRight(PostFrame, 0.5, 30, Scalar(0,255,0), 1, boundRect);
-	imshow ("Output2", PostFrame2);
+ 		//imshow ("Output", PostFrame);
+	    
+		
+	#ifdef DEBUG
+	cout << "Processing Done" << endl;
+	imshow ("THRESH", ThreshMat);	
+	#endif
+	
+	keypoints = blobDetect(ThreshMat, Scalar(185, 215, 255), PostFrame2);          
+	PostFrame2 = getLeftRight(PostFrame, 0.5, 30, Scalar(0,255,0), 1, boundRect);
+	imshow ("Output", PostFrame);
            char k = cvWaitKey(5);
 		if (k == 8) {
 			std::ostringstream file;
@@ -193,4 +206,22 @@ int image(string LOCATION) {
      }
 
 
+
+/*vector <KeyPoint> blobDetect (Mat & _mFrame, Scalar _sColor = Scalar(185, 218, 255), bool _bDrawPoints) {
+	vector <KeyPoint> _vKeypoints;	
+	SimpleBlobDetector _sbdDetector;
+	_sbdDetector.detect(_mFrame, _vKeypoints);
+	if (_bDrawPoints) {
+		drawKeypoints( _mFrame, _vKeypoints, _mFrame, _sColor,DrawMatchesFlags::DRAW_RICH_KEYPOINTS );			
+	}
+	return _vKeypoints;
+}*/
+vector <KeyPoint> blobDetect (Mat _mFrame, Scalar _sColor, Mat _mOutFrame) {
+	vector <KeyPoint> _vKeypoints;	
+	SimpleBlobDetector _sbdDetector;
+
+	_sbdDetector.detect(_mFrame, _vKeypoints);
+	drawKeypoints( _mFrame, _vKeypoints, _mOutFrame, _sColor,DrawMatchesFlags::DRAW_RICH_KEYPOINTS );			
+	return _vKeypoints;
+}
 

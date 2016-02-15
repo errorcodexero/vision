@@ -38,6 +38,7 @@ void drawReticle (cv::Mat & inframe, int size, Point loc, Scalar color) {
 	Point maxY (loc.x, ((loc.y + (18 * size)) + 12));
 
 	cv::circle(inframe, loc, (36 * (size / 2)), color, size, 8, 0);
+	if (size <= 1) 	
 	cv::circle(inframe, loc, (36 * size), color, size, 8, 0);
 
 	cv::line(inframe, minX, maxX, color, size, 8, 0);
@@ -79,7 +80,7 @@ vector < Rect> ShowTargets(const vector <vector < Point > > & contours, Mat fram
 		Point pt1 = boundRect[i].tl();
 		Point pt2 = boundRect[i].br();
 		cv::Point center = getMean(pt1, pt2);
-		drawReticle(frame, 2, center, RED);
+		//drawReticle(frame, 2, center, RED);
 	}
 	return boundRect;
 }
@@ -112,8 +113,10 @@ Mat getLeftRight(Mat frame, double scale, int range, Scalar color, int thickness
 		cv::Point p1 = boundRects[i].tl();
 		cv::Point p2 = boundRects[i].br();
 		point = Point((p2.x-(int) (10*scale)), (p1.y-(int) (20*scale)));
+		#ifdef DEBUG
 		cout << "RECT " << i << endl;
-		cv::Point center = Point(((p1.x + p2.x)/2), ((p1.y + p2.y)/2));
+		#endif
+		cv::Point center = Point(((p1.x + p2.x)/2), ((p1.y + p2.y)/2));		
 		#ifdef DEBUG		
 		cout << "Midline is at " <<midline << endl;
 		cout << "Center) "  << center.x << "," << center.y << endl;
