@@ -20,7 +20,8 @@ void Threshold(cv::Mat & ThreshMat, cv::Mat HSVMin, cv::Mat HSVMax, cv::Mat Fram
 
 int getProxToPoint (cv::Point pt1, cv::Mat Frame);
 
+float fGetAnglefromPixel ( float _fMidLine, int _iFOV, int _fX);
 
-cv::Mat getLeftRight(cv::Mat Frame, double scale, cv::Scalar color,int range, int thickness, std::vector <cv::Rect > boundRects);
+cv::Mat getLeftRight(cv::Mat Frame, double scale, int range, cv::Scalar color, int thickness, std::vector <cv::Rect > boundRects);
 
 #endif /* VISUALUTILS_H_ */

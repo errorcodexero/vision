@@ -17,7 +17,7 @@ using namespace std;
 vector <KeyPoint> blobDetect (Mat _mFrame, Scalar _sColor, Mat _mOutFrame);
 int image(string LOCATION);
 int camera();
-
+float fGetAnglefromPixel ( int _iFrameWidth, int _iFOV, int _iX);
 int main(int argc, char *argv[]) {	
 	if (argc <= 1) 
 		return camera();
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 
 int camera() {
 initModule_features2d();
-
+	float angle;
         bool die = false;
 	string filename("snapshot");
 	string suffix(".png");
@@ -38,7 +38,8 @@ initModule_features2d();
         vector < vector <Point> > contours;
         vector<Rect > boundRect;
 	vector <KeyPoint> keypoints;
-        Mat frame(Size(480, 360), CV_8UC3, Scalar(0));
+	vector <Point> centers;	        
+	Mat frame(Size(480, 360), CV_8UC3, Scalar(0));
         VideoCapture cap ("http://root:1425@10.14.25.17/mjpg/video.mjpg?dummy=video.mjpg");
 
         if (!cap.isOpened())
@@ -74,7 +75,7 @@ initModule_features2d();
 		#endif
             //Define variables to be used in the thresholding process
 	    Mat HSVFrame(Size(480, 360), CV_8UC3, Scalar (105, 200, 200));       
-	    Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (105, 200, 200));
+	    Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (105, 200, 150));
             Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (135, 255, 255));
             Mat ThreshMat(Size(480, 360), CV_8U, Scalar(0));
 	    cvtColor(frame, HSVFrame, CV_RGB2HSV);
@@ -91,9 +92,10 @@ initModule_features2d();
 	imshow ("THRESH", ThreshMat);	
 	#endif
 	
-	keypoints = blobDetect(ThreshMat, Scalar(185, 215, 255), PostFrame2);          
+	keypoints = blobDetect(ThreshMat, Scalar(185, 215, 255), PostFrame2);      
 	PostFrame2 = getLeftRight(PostFrame, 0.5, 30, Scalar(0,255,0), 1, boundRect);
-	imshow ("Output", PostFrame);
+	
+imshow ("Output", PostFrame);
            char k = cvWaitKey(5);
 		if (k == 8) {
 			std::ostringstream file;
@@ -224,4 +226,5 @@ vector <KeyPoint> blobDetect (Mat _mFrame, Scalar _sColor, Mat _mOutFrame) {
 	drawKeypoints( _mFrame, _vKeypoints, _mOutFrame, _sColor,DrawMatchesFlags::DRAW_RICH_KEYPOINTS );			
 	return _vKeypoints;
 }
+
 
