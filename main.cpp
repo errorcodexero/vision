@@ -6,18 +6,39 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 //Local files
 #include "VisualUtils.h"
 #include "errorList.h"
 
-
+#define PORT 6425
 
 using namespace cv;
 using namespace std;
+
+void *get_in_addr(struct sockaddr *sa) {
+if (sa->sa_family == AF_INET) {
+	return &(((struct sockaddr_in*)sa)->sin_addr);
+	}
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
 vector <KeyPoint> blobDetect (Mat _mFrame, Scalar _sColor, Mat _mOutFrame);
 int image(string LOCATION);
 int camera();
 float fGetAnglefromPixel ( int _iFrameWidth, int _iFOV, int _iX);
+
 int main(int argc, char *argv[]) {	
 	if (argc <= 1) 
 		return camera();
@@ -75,9 +96,20 @@ initModule_features2d();
 		#endif
             //Define variables to be used in the thresholding process
 	    Mat HSVFrame(Size(480, 360), CV_8UC3, Scalar (105, 200, 200));       
+	    #ifdef GREEN
+	    Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (35, 200, 150));
+            Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (85, 255, 255));
+            #endif
+	    #ifdef BLUE
+	    Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (-15, 200, 100));
+            Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (15, 255, 255));
+            #endif
+	    #ifdef RED
 	    Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (105, 200, 150));
             Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (135, 255, 255));
-            Mat ThreshMat(Size(480, 360), CV_8U, Scalar(0));
+            #endif
+	    Mat ThreshMat(Size(480, 360), CV_8U, Scalar(0));
+	    
 	    cvtColor(frame, HSVFrame, CV_RGB2HSV);
 
             //Begin the Processing

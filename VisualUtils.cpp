@@ -11,9 +11,9 @@
 #include "VisualUtils.h"
 
 //BGR
-static const cv::Scalar RED(0,0,255);
-static const cv::Scalar GREEN(0,255,0);
-static const cv::Scalar BLUE(255, 0, 0);
+static const cv::Scalar sRED(0,0,255);
+static const cv::Scalar sGREEN(0,255,0);
+static const cv::Scalar sBLUE(255, 0, 0);
 
 using namespace std;
 using namespace cv;
@@ -76,11 +76,11 @@ vector < Rect> ShowTargets(const vector <vector < Point > > & contours, Mat fram
 	}
 	for (unsigned int i = 0; i < contours.size(); i++) {
 		//8 is always 8 in this position in code, and 2 is thickness
-		rectangle (frame, boundRect[i].tl(),boundRect[i].br(), BLUE, 2, 8, 0);
+		rectangle (frame, boundRect[i].tl(),boundRect[i].br(), sBLUE, 2, 8, 0);
 		Point pt1 = boundRect[i].tl();
 		Point pt2 = boundRect[i].br();
 		cv::Point center = getMean(pt1, pt2);
-		//drawReticle(frame, 2, center, RED);
+		//drawReticle(frame, 2, center, sRED);
 	}
 	return boundRect;
 }
@@ -103,7 +103,7 @@ int getProxToPoint (cv::Point pt1, int midline) {
 
 
 
-Mat getLeftRight(Mat frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
+/*Mat getLeftRight(Mat frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
 	cv::Point point;
 	int dist;
 	int const midline = (frame.cols / 2);
@@ -138,6 +138,72 @@ Mat getLeftRight(Mat frame, double scale, int range, Scalar color, int thickness
 			display("Right");
 			#ifdef DEBUG
 			cout << "RIGHT" << endl;
+			#endif
+    		}
+		else {
+			cout << "ERROR OUT OF BOUNDS" << endl;
+		}	
+		
+	}
+	return frame;
+}*/
+
+float fGetAnglefromPixel ( float _fMidLine, int _iFOV, float _fX) {
+	cout << _fX << endl;	
+	float _fRatioOfXToFrame = _fX/(_fMidLine);
+	cout << _fRatioOfXToFrame << endl;
+	float _fAngle = _fRatioOfXToFrame * (_iFOV/2);
+	cout << _fAngle;	
+	if (_fX < _fMidLine) {
+		_fAngle = (((_iFOV/2) - _fAngle)* -1);
+	}
+	else {
+		_fAngle = (_fAngle - (_iFOV/2));
+	}
+	cout << _fAngle << endl;
+	return _fAngle;
+}
+
+Mat getLeftRight(Mat frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
+	cv::Point point;
+	int dist;
+	int const midline = (frame.cols / 2);
+string outtext;
+	vector <Point> centers;
+	for (unsigned int i = 0 ; i < boundRects.size(); i++) {
+		
+		cv::Point p1 = boundRects[i].tl();
+		cv::Point p2 = boundRects[i].br();
+		point = Point((p2.x-(int) (10*scale)), (p1.y-(int) (20*scale)));
+		#ifdef DEBUG
+		cout << "RECT " << i << endl;
+		#endif
+		cv::Point center = Point(((p1.x + p2.x)/2), ((p1.y + p2.y)/2));		
+		#ifdef DEBUG		
+		cout << "Midline is at " <<midline << endl;
+		cout << "Center) "  << center.x << "," << center.y << endl;
+		#endif
+		dist = getProxToPoint(center, midline);
+		auto display = [&](string asdf){ putText(frame, asdf, point, FONT_HERSHEY_SIMPLEX, scale, color, thickness, 8, false);};
+		int iIsLeftRight = approx((midline-dist),midline, range);
+		float angle = fGetAnglefromPixel( midline, 67, center.x);		
+		if (iIsLeftRight == 0) {
+			outtext = "Centered " + to_string(angle); 
+			display(outtext);
+			#ifdef DEBUG
+			cout << "CENTERED " << angle << endl;
+			#endif
+		} else if (iIsLeftRight == 1) {
+			outtext = "Left " + to_string(angle);
+			display(outtext);
+			#ifdef DEBUG
+			cout << "LEFT " << angle << endl;
+			#endif
+		} else if (iIsLeftRight == -1) {
+			outtext = "Right " + to_string(angle);
+			display(outtext);
+			#ifdef DEBUG
+			cout << "RIGHT " << angle << endl;
 			#endif
     		}
 		else {
