@@ -24,6 +24,8 @@ cv::Point getMean(cv::Point pt1, cv::Point pt2);
 
 float fGetAnglefromPixel ( float _fMidLine, int _iFOV, float _fX);
 
-cv::Mat getLeftRight(cv::Mat Frame, double scale, int range, cv::Scalar color, int thickness, std::vector <cv::Rect > boundRects);
+float getLeftRight(cv::Mat & Frame, double scale, int range, cv::Scalar color, int thickness, std::vector <cv::Rect > boundRects);
+
+int getArea (cv::Point pt1, cv::Point pt2);
 
 #endif /* VISUALUTILS_H_ */

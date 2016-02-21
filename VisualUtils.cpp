@@ -164,11 +164,11 @@ float fGetAnglefromPixel ( float _fMidLine, int _iFOV, float _fX) {
 	return _fAngle;
 }
 
-Mat getLeftRight(Mat frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
+float getLeftRight(Mat & frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
 	cv::Point point;
 	int dist;
 	int const midline = (frame.cols / 2);
-string outtext;
+	string outtext;
 	vector <Point> centers;
 	for (unsigned int i = 0 ; i < boundRects.size(); i++) {
 		
@@ -186,7 +186,7 @@ string outtext;
 		dist = getProxToPoint(center, midline);
 		auto display = [&](string asdf){ putText(frame, asdf, point, FONT_HERSHEY_SIMPLEX, scale, color, thickness, 8, false);};
 		int iIsLeftRight = approx((midline-dist),midline, range);
-		float angle = fGetAnglefromPixel( midline, 67, center.x);		
+		float angle = fGetAnglefromPixel( midline, 67, center.x);
 		if (iIsLeftRight == 0) {
 			outtext = "Centered " + to_string(angle); 
 			display(outtext);
@@ -208,9 +208,19 @@ string outtext;
     		}
 		else {
 			cout << "ERROR OUT OF BOUNDS" << endl;
-		}	
+		}
+		return angle;
+
+
 		
 	}
-	return frame;
+	return 0;
+}
+
+int getArea(Point pt1, Point pt2) {
+	int _iXDim = abs(pt2.x - pt1.x);
+	int _iYDim = abs(pt2.y - pt1.y);
+	int _iArea = _iXDim * _iYDim;
+	return _iArea;
 }
 
