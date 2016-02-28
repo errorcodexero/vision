@@ -77,10 +77,12 @@ vector < Rect> ShowTargets(const vector <vector < Point > > & contours, Mat fram
 	for (unsigned int i = 0; i < contours.size(); i++) {
 		//8 is always 8 in this position in code, and 2 is thickness
 		rectangle (frame, boundRect[i].tl(),boundRect[i].br(), sBLUE, 2, 8, 0);
+#ifdef USETARGET
 		Point pt1 = boundRect[i].tl();
 		Point pt2 = boundRect[i].br();
 		cv::Point center = getMean(pt1, pt2);
-		//drawReticle(frame, 2, center, sRED);
+		drawReticle(frame, 2, center, sRED);
+#endif
 	}
 	return boundRect;
 }
@@ -164,12 +166,13 @@ float fGetAnglefromPixel ( float _fMidLine, int _iFOV, float _fX) {
 	return _fAngle;
 }
 
-float getLeftRight(Mat & frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
+vector <float > getLeftRight(Mat & frame, double scale, int range, Scalar color, int thickness, vector <Rect > boundRects) {
 	cv::Point point;
 	int dist;
 	int const midline = (frame.cols / 2);
 	string outtext;
 	vector <Point> centers;
+	vector <float > vfAngle_;
 	for (unsigned int i = 0 ; i < boundRects.size(); i++) {
 		
 		cv::Point p1 = boundRects[i].tl();
@@ -186,35 +189,35 @@ float getLeftRight(Mat & frame, double scale, int range, Scalar color, int thick
 		dist = getProxToPoint(center, midline);
 		auto display = [&](string asdf){ putText(frame, asdf, point, FONT_HERSHEY_SIMPLEX, scale, color, thickness, 8, false);};
 		int iIsLeftRight = approx((midline-dist),midline, range);
-		float angle = fGetAnglefromPixel( midline, 67, center.x);
+		vfAngle_.push_back( fGetAnglefromPixel( midline, 67, center.x));
 		if (iIsLeftRight == 0) {
-			outtext = "Centered " + to_string(angle); 
+			outtext = "Centered " + to_string(vfAngle_[i]);
 			display(outtext);
 			#ifdef DEBUG
-			cout << "CENTERED " << angle << endl;
+			cout << "CENTERED " << vfAngle_[i] << endl;
 			#endif
 		} else if (iIsLeftRight == 1) {
-			outtext = "Left " + to_string(angle);
+			outtext = "Left " + to_string(vfAngle_[i]);
 			display(outtext);
 			#ifdef DEBUG
-			cout << "LEFT " << angle << endl;
+			cout << "LEFT " << vfAngle_[i] << endl;
 			#endif
 		} else if (iIsLeftRight == -1) {
-			outtext = "Right " + to_string(angle);
+			outtext = "Right " + to_string(vfAngle_[i]);
 			display(outtext);
 			#ifdef DEBUG
-			cout << "RIGHT " << angle << endl;
+			cout << "RIGHT " << vfAngle_[i] << endl;
 			#endif
     		}
 		else {
 			cout << "ERROR OUT OF BOUNDS" << endl;
 		}
-		return angle;
+		//return vfAngle_;
 
 
 		
 	}
-	return 0;
+	return vfAngle_;
 }
 
 int getArea(Point pt1, Point pt2) {

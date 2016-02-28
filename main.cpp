@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,12 +28,53 @@ extern "C" {
 
 #define PORT "6425"
 #define BACKLOG 0
+#define MAX_BAD_FRAMES 30
 
 using namespace cv;
 using namespace std;
 extern "C" {
 void handler();
 }
+template <class T>
+T getMin (vector <T> input) {
+	size_t i;
+	T minimum = 0;
+	T minimum_out = 0;
+	if (input.size() == 0)
+		return 360;
+	if (input.size() == 1)
+		return input[0];
+	else{
+		minimum = 360;
+		for (i = 0; i < input.size(); i++) {
+			if (minimum > abs(input[i])) {
+				minimum = abs(input[i]);
+				minimum_out = input[i];
+			}
+		}
+	}
+	return minimum_out;
+}
+
+template <class T>
+T getMax (vector <T> input) {
+	size_t i;
+	vector<T > abs_input;
+	T maximum = input[0];
+	for (i = 0; i <= input.size(); i++) {
+	abs_input.push_back (abs(input[i]));
+	}
+	for (i = 1; i < input.size(); i++) {
+		if (maximum < abs_input[i]) {
+			maximum = input[i];
+		}
+
+	}
+	return maximum;
+}
+
+
+
 int sendall(int s, char *buf, int *len)
 {
     int total = 0;        // how many bytes we've sent
@@ -89,17 +131,19 @@ int main(int argc, char *argv[]) {
 
 int camera() {
 initModule_features2d();
-	//float angle;
+	float angle;
+	int numOfBadFrames = 0;
     bool die = false;
 	string filename("snapshot");
 	string suffix(".png");
 	int i_snap(0), iter(0);
+	auto index = 0;
     vector < vector <Point> > contours;
     vector<Rect > boundRect;
 	vector <KeyPoint> keypoints;
-	vector <Point> centers;	        
+	vector <Point> centers;
+	//vector <float > abs_angle;
 	Mat frame(Size(480, 360), CV_8UC3, Scalar(0));
-	bool bHasAddr = false;
 	bool bIsConnected = false;
 	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
 	struct addrinfo hints, *servinfo, *p;
@@ -111,8 +155,8 @@ initModule_features2d();
 	int rv;
 	char buf[256];
 	int numchars = 0;
-	int randint = 0;
-	float angle;
+	vector<float > angles;
+	Mat LastFrame(Size(480, 360), CV_8UC3, Scalar (0));
 	snprintf(buf, sizeof buf, "Communications Initialized\n");
 
 
@@ -195,10 +239,23 @@ initModule_features2d();
 	        	bIsConnected = true;
 	        	while (die == false && bIsConnected) {
 	        	bool rSuccess = cap.read(frame);
+	        	int nonZero = 0;
+	        	Mat cmp(Size(480, 360), CV_8UC1, Scalar ());
+				//compare(frame, LastFrame,cmp, CMP_EQ);
+	        	//nonZero = countNonZero(cmp);
 	        	if (!rSuccess)
 	        	{
 	        		cout << "Cannot Read Frame" << endl;
-	        		return -1;
+	        		//return -1;
+	        		snprintf( buf, sizeof buf, "Error: Bad Frame or No Frame\n");
+	        		numOfBadFrames++;
+	        	}
+	        	/*else if (nonZero = (frame.rows * frame.cols)) {
+	        		numOfBadFrames++;
+	        	}*/
+
+	        	else {
+	        		numOfBadFrames = 0;
 	        	}
 				#ifdef DEBUG
 	        	cout << "Frame Successfully Read" << endl;
@@ -221,8 +278,8 @@ initModule_features2d();
             	//Define variables to be used in the thresholding process
             	Mat HSVFrame(Size(480, 360), CV_8UC3, Scalar (105, 200, 200));
 	    		#ifdef GREEN
-            	Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (35, 200, 150));
-            	Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (85, 255, 255));
+            	Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (30, 175, 110));
+            	Mat HSVMax(Size(480, 360), CV_8UC3, Scalar (90, 255, 255));
 				#endif
 	    		#ifdef BLUE
             	Mat HSVMin(Size(480, 360), CV_8UC3, Scalar (-15, 200, 100));
@@ -247,34 +304,55 @@ initModule_features2d();
             	cout << "Processing Done" << endl;
             	imshow ("THRESH", ThreshMat);
 				#endif
-	
+
             	keypoints = blobDetect(ThreshMat, Scalar(185, 215, 255), PostFrame2);
-            	angle = getLeftRight(PostFrame, 0.5, 30, Scalar(0,255,0), 1, boundRect);
-	            numchars = (int ) strlen(buf);
-	           int i = 0;
-	           if (send(new_fd, buf, strlen (buf), 0) == -1) {
+            	angles = getLeftRight(PostFrame, 0.5, 30, Scalar(0,255,0), 1, boundRect);
+            	cout << "Angles size is "<< angles.size() << endl;
+            	if (angles.size() != 0) {
+            		for (int i = 0; i < angles.size(); i++) {
+            			cout << "Angle " << i << " is "<< angles[i] << endl;
+            		}
+	        	}
+            	if (angles.size() > 0){
+            	angle = getMin(angles);
+            		cout << "Angle is " << angle << endl;
+            	}
+            	if (boundRect.size() < 1 || angle == 360) {
+            		snprintf(buf, sizeof buf, "Unknown Angle; No Objects Detected\n");
+            		}
+            		else
+            		snprintf(buf, sizeof buf, "%.2f\n", angle);
+            	numchars = (int ) strlen(buf);
+	            if (numOfBadFrames >= MAX_BAD_FRAMES) {
+	            	snprintf(buf, sizeof buf, "Error: Too many bad frames\n");
+	            }
+            	if (send(new_fd, buf, strlen (buf), 0) == -1) {
 	        	   perror("send");
-	        	   bIsConnected = false;
-	           }
-	           snprintf(buf, sizeof buf, "%f\n", angle);
-	           numchars = (int ) strlen(buf);
-	           #ifdef SHOWWINDOWS
-	           imshow ("Output", PostFrame);
-			   #endif
-	           char k = cvWaitKey(5);
-	           if (k == 8) {
-	        	   std::ostringstream file;
-	        	   file << filename << i_snap << suffix;
-	        	   cv::imwrite(file.str(), frame);
-	        	   i_snap++;
-	           	   }
-	           if (iter >= 100000000)
-	        	   break;
-	           iter++;
+
+	        	   //bIsConnected = false;
+	            }
+	            //snprintf(buf, sizeof buf, "%f\n", angle);
+	            cout << "Buffer Contains '" << buf << "'" << endl;
+	            numchars = (int ) strlen(buf);
+	           	#ifdef SHOWWINDOWS
+	            imshow ("Output", PostFrame);
+				#endif
+	            char k = cvWaitKey(5);
+	            if (k == 8) {
+	            	std::ostringstream file;
+	            	file << filename << i_snap << suffix;
+	            	cv::imwrite(file.str(), frame);
+	            	i_snap++;
+	           	   	   }
+	            if (iter >= 100000000)
+	            	break;
+	            iter++;
+	            frame.copyTo(LastFrame);
 
 	        	}
 	        }
-}
+	}
+
 
 int image(string LOCATION) {
 	if (LOCATION.size() == 0) {
@@ -349,7 +427,7 @@ int image(string LOCATION) {
 			cout <<  "(Bottom Right) "<< i << ") "<<boundRect[i].br().x << "," << boundRect[i].br().y << endl;	
 		}
 		#endif
-    	    PostFrame2 = getLeftRight(PostFrame, 0.5, 20, Scalar(0,255,0), 1, boundRect);
+    	    vector <float > angles = getLeftRight(PostFrame, 0.5, 20, Scalar(0,255,0), 1, boundRect);
 	    if (!finishedLoop){
             imwrite(LOCATION, PostFrame);
             finishedLoop = true;
@@ -389,6 +467,7 @@ vector <KeyPoint> blobDetect (Mat _mFrame, Scalar _sColor, Mat _mOutFrame) {
 	drawKeypoints( _mFrame, _vKeypoints, _mOutFrame, _sColor,DrawMatchesFlags::DRAW_RICH_KEYPOINTS );			
 	return _vKeypoints;
 }
+#ifdef USEHANDLER
 extern "C" {
 void handler() {
 
@@ -401,8 +480,6 @@ void handler() {
     	char s[INET6_ADDRSTRLEN];
     	int rv;
     	char buf[256];
-    	int numchars = 0;
-    	int randint = 0;
 
     	memset(&hints, 0, sizeof hints);
 		hints.ai_family = AF_UNSPEC;
@@ -494,6 +571,6 @@ void handler() {
     	}
 	}
 }
-
+#endif
 
 
