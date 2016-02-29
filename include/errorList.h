@@ -1,1 +1,0 @@
-#define ERROR_IMG_LOAD 30

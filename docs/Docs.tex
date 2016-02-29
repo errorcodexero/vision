@@ -1,0 +1,111 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{afterpage}
+\usepackage{listings}
+\usepackage{color}
+
+\newcommand{\tab}[1]{\hspace{.2\textwidth}\rlap{#1}}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{oldpaper}{rgb}{0.93,0.90,0.84}
+ 
+\lstdefinestyle{code}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+ 
+
+
+\title{Rewrite of the Vision Tracking System, To Benefit the Accuracy and Speed of the nVidia Tegra$^{©}$}
+\date{Febuary 28, 2016}
+\author{Nicholas Burrell\\ Software Team}
+
+
+\begin{document}
+\lstset{style=code}
+\pagecolor{oldpaper}
+\afterpage{\nopagecolor}
+\maketitle
+\clearpage
+
+\section{Introduction}
+\subsection{Before We Begin}
+Thank you for taking the time to read the documentation for our systems new rewrite. The old system had a \textit{\textbf{LOT}} of issues, which we can see below. They range from simple things like inconsistent variable naming schemes and tabbing, to more extreme things like memory management and even neglecting an entire subsystem of the Tegra$^{©}$, the CUDA{$^{©}$ Cores.\\
+Some examples of poor writting include...
+\begin{lstlisting}[language=C++, caption=Poor Coding Part 1]
+template <class T>
+T getMin (vector <T> input) {
+	size_t i;
+	T minimum = 0;
+	T minimum_out = 0;
+	if (input.size() == 0)
+		return 360;
+	if (input.size() == 1)
+		return input[0];
+	else{
+		minimum = 360;
+		for (i = 0; i < input.size(); i++) {
+			if (minimum > abs(input[i])) {
+				minimum = abs(input[i]);
+				minimum_out = input[i];
+			}
+		}
+	}
+	return minimum_out;
+}
+\end{lstlisting}
+The first issue with this example, is it is written for reusability, while it doesn't need to be. That is \textit{not} and issue, but for the sake of simplicity, it can and \textit{will} be rewritten. The second being the hard coded value. Line 11, to be precise. If we were to write this code to be reusable, we should just have the value be some arbitrarily large number, say, 600 billion. Speaking of bad practices...\\
+\clearpage
+\begin{lstlisting}[language=C++, caption=Poor Coding Part 2]
+
+float angle;
+	int numOfBadFrames = 0;
+    bool die = false;
+	string filename("snapshot");
+	string suffix(".png");
+	int i_snap(0), iter(0);
+	auto index = 0;
+    vector < vector <Point> > contours;
+    vector<Rect > boundRect;
+	vector <KeyPoint> keypoints;
+	vector <Point> centers;
+	//vector <float > abs_angle;
+	Mat frame(Size(480, 360), CV_8UC3, Scalar(0));
+	bool bIsConnected = false;
+	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+	struct addrinfo hints, *servinfo, *p;
+	struct sockaddr_storage cli_addr; // connector's address information
+	socklen_t sin_size;
+	struct sigaction sa;
+	int yes=1;
+	char s[INET6_ADDRSTRLEN];
+	int rv;
+	char buf[256];
+	int numchars = 0;
+	vector<float > angles;
+	Mat LastFrame(Size(480, 360), CV_8UC3, Scalar (0));
+
+\end{lstlisting}  
+I mean what is up with the naming scheme. It appears as though the code was copied off of the internet. Granted, a small portion of it was. Mostly, the sockets. Along with this, the tabbing is atrocious. This code is \textit{begging} to be rewritten.
+\subsection{General Improvements}
+	Before we delve into what will be rewritten, lets compare and contrast some of the issues with solutions.\\
+	The first issue is the writing style. Relatively easy fix. The next issue, is speed. The fact that the camera in the rear of the robot can go at \textit{whatever} framerate I need at the time, means my code should perform that fast as well. Parallel processing would improve the speed \textit{drastically}, as would the GPU. Some of these will require some things like named pipes, or more advanced things such as CUDA mathematics.
+\end{document}
