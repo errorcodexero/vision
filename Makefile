@@ -1,16 +1,16 @@
 all:
-	rm -rf build/
+	rm -rf build/release
+	rm -rf build/debug
 	mkdir -p build/release
 	mkdir -p build/debug
 	
-	rm -rf build/release
-	mkdir build/release
-	
-	rm -rf bin/
+	rm -rf bin/utils
+	rm -rf bin/vision
 	mkdir -p bin/utils
 	mkdir -p bin/vision
 	
-	rm -rf lib/
+	rm -rf lib/utils
+	rm -rf lib/vision
 	mkdir -p lib/utils
 	mkdir -p lib/vision
 	
