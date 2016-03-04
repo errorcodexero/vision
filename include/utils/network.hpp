@@ -53,6 +53,6 @@ private:
 	int _iRV;
 
 	char s[INET6_ADDRSTRLEN];
-	char _szBuf[512]
+	char _szBuf[512];
 
 };
