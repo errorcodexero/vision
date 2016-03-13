@@ -2,3 +2,7 @@
 *.out
 *.a
 *.so
+*.aux
+*.log
+*.gz
+*.tex
