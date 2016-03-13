@@ -2,25 +2,37 @@
 
 using namespace std;
 
-vector <char* > szParseString(char * _szString, char * _szDilimiter) {
+vector <char* > vszParseString(char * _szString, char * _szDilimiter) {
 
-	int _iIndex;
-	int _iCurrVec = 0;
+	int iCurrVec = 0;
 
-	char _szTmpBuf[1];
-	char _szCurrStr[];
-	vector <char[] > _szBuf;
+	unsigned int uiIndex;
+
+	char szTmpBuf[1];
+	char* szCurrStr;
+	vector <char* > vszBuf;
 
 
 	do {
-		_szTmpBuf = _szString[_iIndex];
-		if (strcmp(_szTmpBuf, _szDilimiter) == 0) {
-			_szBuf.push_back(_szCurrStr);
-			_iCurrVec++;
-			memset(_szCurrStr, 0, sizeof _szCurrStr);
+		szTmpBuf[0] = _szString[uiIndex];
+		if (strcmp(szTmpBuf, _szDilimiter) == 0) {
+			vszBuf.push_back(szCurrStr);
+			iCurrVec++;
+			memset(szCurrStr, 0, sizeof(&szCurrStr));
+		} else {
+			szCurrStr[uiIndex] = szTmpBuf[0];
+			uiIndex++;
 		}
-			_szCurrStr += _szTmpBuf;
-			_iIndex++;
-	} while (_iIndex < strlen(_szString));
-	return _szBuf;
+	} while (uiIndex < strlen(_szString));
+	return vszBuf;
+}
+
+bool bIsStringIP( char* _szString) {
+	vector <char* > vszBuf;
+	vszBuf = vszParseString(_szString, (char *) ".");
+
+	if (vszBuf.size() != 4)
+		return true;
+
+	return false;
 }

@@ -16,7 +16,7 @@
 #include "utils/math.hpp"
 #include "utils/network.hpp"
 
-int main (int argc, char* argvp[]) {
+int main (int argc, char* argv[]) {
 
 
 }

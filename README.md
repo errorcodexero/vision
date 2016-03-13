@@ -1,0 +1,1 @@
+This is a newer, rewritten framework for vision system code. All functionality of prior years code will be kept, so if we ever do need repeated functions, such as alignment code, the server/client classes, ect.
