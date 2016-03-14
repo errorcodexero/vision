@@ -2,7 +2,7 @@
 
 using namespace std;
 
-vector <char* > vszParseString(char * _szString, char * _szDilimiter) {
+vector <char* > vszParseString(char* _szString, char* _szDilimiter) {
 
 	int iCurrVec = 0;
 
@@ -25,6 +25,26 @@ vector <char* > vszParseString(char * _szString, char * _szDilimiter) {
 		}
 	} while (uiIndex < strlen(_szString));
 	return vszBuf;
+}
+
+void exitWithError(std::string _strErrorMsg, int _iExitNumber) {
+	cout << _strErrorMsg << "\n";
+	exit(_iExitNumber);
+}
+
+char* szTruncateByDelimiter(char* _szBuf, char* _szDilimiter) {
+	int index = 0;
+
+	char* szBuf = new char[sizeof _szBuf];
+	char cTmpBuf[1];
+
+	do {
+		cTmpBuf[0] = _szBuf[index];
+		if (cTmpBuf == _szDilimiter)
+			break;
+		szBuf[index] = _szBuf[index];
+	} while (cTmpBuf != _szDilimiter);
+	return szBuf;
 }
 
 bool bIsStringIP( char* _szString) {

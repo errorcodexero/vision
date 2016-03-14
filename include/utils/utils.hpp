@@ -14,10 +14,13 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/gpu/gpu.hpp>
 
-std::vector <char* > vszParseString(char * _szString, char * _szDilimiter);
+void exitWithError(std::string _strErrorMsg, int _iExitNumber);
 
 bool bIsStringIP(char * _szString);
 
+char* szTruncateByDelimiter(char* _szBuf, char* _szDilimiter);
+
+std::vector <char* > vszParseString(char * _szString, char * _szDilimiter);
 
 //Declare some more types
 typedef unsigned char byte;
@@ -25,17 +28,18 @@ typedef unsigned short word;
 typedef unsigned long dword;
 typedef unsigned long long qword;
 
+typedef char* cstring;
+
 typedef short BYTE;
 typedef long WORD;
 typedef long long DWORD;
 
-typedef unsigned short uint8;
-typedef unsigned int uint16;
-typedef unsigned long uint32;
+typedef unsigned char uint8;
+typedef unsigned short int uint16;
+typedef unsigned int uint32;
 
-typedef short int8;
-typedef int int16;
-typedef long int32;
+typedef short int int16;
+typedef int int32;
 
 
 //Done with types

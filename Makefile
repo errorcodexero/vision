@@ -1,5 +1,4 @@
 all:
-	#make folders
 	make clean
 	
 	g++ -Wall -Werror -fPIC -c src/vision/image.cpp -I include/ -o lib/vision/image.o -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video -lopencv_gpu -std=c++11
@@ -70,7 +69,6 @@ network:
 	#rm lib/utils/network.a
 	g++ -Wall -Werror -fPIC -c src/utils/network.cpp -I include/ -o lib/utils/network.o lib/utils/utils.a -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video -lopencv_gpu -std=c++11
 	ar rcs lib/utils/network.a lib/utils/network.o
-8
 	#g++ -shared lib/utils/network.o -o bin/utils/libnetwork.so
 	g++ -Wall -Werror -fPIC -c src/utils/network.cpp -I include/ -o lib/utils/networkd.o lib/utils/utilsd.a -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_video -lopencv_gpu -DDEBUG -std=c++11
 	ar rcs lib/utils/networkd.a lib/utils/networkd.o

@@ -11,16 +11,26 @@ extern "C" {
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <stdarg.h>
 }
 
 #include "utils/utils.hpp"
 
+void *getInAddr(struct sockaddr *sa);
+/** \brief A Simple client class for any networking needs
+ *
+ *
+ *	Create an instance of the Client class to open a socket on a given port, with either TCP or UDP, and be able to act as a talker or a client
+ */
 class Client {
 public:
-	Client(char* _szIP[15], char* _szPort[6], int _iSockType);
+	Client(char* _szIP, char* _szPort, int _iSockType);
 	virtual ~Client();
 
-	bool bConnect();	//Can be used regardless of UDP or TCP
+	bool bRecv();	//TCP
+	bool bSendTo(char* _szBuf); //UDP
 protected:
 
 
@@ -31,10 +41,10 @@ private:
 	int iRV;
 	int iSockType;
 
-	const char szPORT[6];
-	char szIP[16];
-	char szBuf[512];
-	char szTmpBuf[1];
+	const char* szPORT;
+	char* szIP;
+	char* szBuf;
+	char szS[INET6_ADDRSTRLEN];
 
 	struct addrinfo aiHints, *aiServInfo, *aiP;
 
@@ -43,11 +53,11 @@ private:
 class Server {
 public:
 
-	Server(char _szPort[5], int _iSockType);
+	Server(char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients);
 	virtual ~Server();
 
 	bool bBroadcast(char* _szBuf); //Only use if your using TCP sockets
-	bool bSend(char* _szBuf); //Only use if your using UDP sockets
+	bool bRecvFrom(); //Only use if your using UDP sockets
 
 
 protected:
@@ -60,11 +70,21 @@ private:
 	int iYes = 1;
 	int iRV;
 	int iSockType;
+	int iBacklog;
+	int iNumBytes;
+
+	uint32 iMaxClients;
 
 	char szS[INET6_ADDRSTRLEN];
-	const char szPORT[5];
+	char* szBuf;
+
+	const char* szPORT;
 
 	struct addrinfo aiHints, *aiServInfo, *aiP;
+
+	socklen_t slAddrLen, slSinSize;
+
+	struct sigaction sa;
 
 	struct sockaddr_storage saCliAddr;
 
