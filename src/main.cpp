@@ -17,6 +17,12 @@
 #include "utils/network.hpp"
 
 int main (int argc, char* argv[]) {
-
-
+	Server server((char*) "6425", SOCK_STREAM, 0, 1, false);
+	if(!server.bBroadcast((char*) "Hello\n") && !server.bBroadcast((char*) "World\n")) {
+		cout << "ERROR" << endl;
+		server.~Server();
+	}
+	else
+		cout << "Success!" << endl;
+	server.~Server();
 }

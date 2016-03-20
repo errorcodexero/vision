@@ -20,7 +20,7 @@ bool bIsStringIP(char * _szString);
 
 char* szTruncateByDelimiter(char* _szBuf, char* _szDilimiter);
 
-std::vector <char* > vszParseString(char * _szString, char * _szDilimiter);
+std::vector <char* > vszParseString(char* _szString, char * _szDilimiter);
 
 //Declare some more types
 typedef unsigned char byte;

@@ -1,3 +1,5 @@
+#include <mutex>
+
 extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +33,8 @@ public:
 
 	bool bRecv();	//TCP
 	bool bSendTo(char* _szBuf); //UDP
+
+	bool bNewIP(char* _szIP);
 protected:
 
 
@@ -53,7 +57,7 @@ private:
 class Server {
 public:
 
-	Server(char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients);
+	Server(char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant);
 	virtual ~Server();
 
 	bool bBroadcast(char* _szBuf); //Only use if your using TCP sockets
@@ -72,6 +76,8 @@ private:
 	int iSockType;
 	int iBacklog;
 	int iNumBytes;
+
+	bool bIsPersistant;
 
 	uint32 iMaxClients;
 

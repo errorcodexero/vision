@@ -28,7 +28,7 @@ int sendAll(int _iS, char* _szBuf, int *iLen) {
 	return iN==-1?-1:0;
 }
 
-void sigchldHandler(int s)
+void sigChildHandler(int s)
 {
     // waitpid() might overwrite errno, so we save and restore it:
     int saved_errno = errno;
@@ -135,7 +135,24 @@ bool Client::bSendTo(char* _szBuf) {
 	}
 }
 
-Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients) {
+bool Client::bNewIP(char* _szIP) {
+#ifdef DEBUG
+	cout << "NOTE: This function clears the buffer\n";
+#endif
+	int i = sizeof this->szBuf;
+	memset(this->szBuf, 0, i);
+	int x = sizeof this->szIP;
+	if(bIsStringIP(_szIP)) {
+		memcpy(this->szIP, _szIP, x);
+
+	}
+	else
+		return false;
+
+	return true;
+}
+
+Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant) {
 
 	this->szPORT = _szPort;
 	this->iSockType = _iSockType;
@@ -145,6 +162,7 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 	this->szBuf = '\0';
 	this->iNumBytes = 0;
 	this->slSinSize = 0;
+	this->bIsPersistant = _bIsPersistant;
 
 	memset(&aiHints, 0, sizeof aiHints);
 	aiHints.ai_family = AF_UNSPEC;
@@ -186,7 +204,7 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 			exit(1);
 		}
 
-		this->sa.sa_handler = sigchldHandler;
+		this->sa.sa_handler = sigChildHandler;
 		sigemptyset(&this->sa.sa_mask);
 		this->sa.sa_flags = SA_RESTART;
 		if (sigaction(SIGCHLD, &this->sa, NULL) == -1) {
@@ -206,8 +224,10 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 }
 
 Server::~Server() {
-	close(this->iSockfd);
-	close(this->iNewfd);
+	this->szBuf = (char *) "";
+	if(shutdown(this->iNewfd, 2) == -1) {
+		exitWithError("Failed to close socket", 1);
+	}
 }
 
 bool Server::bBroadcast(char* _szBuf) {
@@ -215,29 +235,33 @@ bool Server::bBroadcast(char* _szBuf) {
 	this->szBuf = _szBuf;
 
 	while (i <= this->iMaxClients) {
+		cout << i << "\n";
 		this->slSinSize = sizeof saCliAddr;
 		this->iNewfd = accept(this->iSockfd, (struct sockaddr *)&saCliAddr, &slSinSize);
 
 		if(this->iNewfd == -1) {
 			perror("accept");
-			inet_ntop(saCliAddr.ss_family, getInAddr((struct sockaddr *)&saCliAddr), this->szS, sizeof this->szS);
-
-			if (!fork()) {
-				close(this->iSockfd);
-				if (sendAll(this->iNewfd, this->szBuf, (int *) sizeof this->szBuf) == -1)
-					perror("send");
-				close(this->iNewfd);
-				exit(0);
-			}
-			close(this->iNewfd);
-			return true;
+			continue;
 		}
+		inet_ntop(saCliAddr.ss_family, getInAddr((struct sockaddr *)&saCliAddr), this->szS, sizeof this->szS);
+
+		if (!fork()) {
+			close(this->iSockfd);
+			if (sendAll(this->iNewfd, this->szBuf, (int *) sizeof this->szBuf) == -1)
+				perror("send");
+			i++;
+			//close(this->iNewfd);
+			exit(0);
+			//i--;
+		}
+		i++;
+		close(this->iNewfd);
 	}
 	return false;
 }
 
 bool Server::bRecvFrom() {
-	if ((this->iNumBytes = recvfrom(this->iSockfd, this->szBuf, sizeof this->szBuf-1, 0, (struct sockaddr *)&saCliAddr, &slAddrLen)) == -1) {
+	if ((this->iNumBytes = recvfrom(this->iSockfd, this->szBuf, sizeof(this->szBuf-1), 0, (struct sockaddr *)&saCliAddr, &slAddrLen)) == -1) {
 		perror("recvform");
 		return false;
 	}
