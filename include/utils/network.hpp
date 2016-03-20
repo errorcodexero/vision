@@ -61,7 +61,7 @@ public:
 	virtual ~Server();
 
 	bool bBroadcast(char* _szBuf); //Only use if your using TCP sockets
-	bool bRecvFrom(); //Only use if your using UDP sockets
+	bool bListen(); //Only use if your using UDP sockets
 
 
 protected:

@@ -23,7 +23,7 @@ T getMin (vector < T> input) {
 	T minimum = 0;
 	T minimum_out = 0;
 	if (input.size() == 0)
-		return 360;
+		return numeric_limits<T>::max();
 	if (input.size() == 1)
 		return input[0];
 	else{
@@ -43,7 +43,7 @@ T getMax (vector <T> input) {
 	T maximum = 0;
 	T maximum_out = 0;
 	if (input.size() == 0)
-		return 0;
+		return numeric_limits<T>::min();
 	if (input.size() == 1)
 		return input[0];
 	else{

@@ -260,7 +260,7 @@ bool Server::bBroadcast(char* _szBuf) {
 	return false;
 }
 
-bool Server::bRecvFrom() {
+bool Server::bListen() {
 	if ((this->iNumBytes = recvfrom(this->iSockfd, this->szBuf, sizeof(this->szBuf-1), 0, (struct sockaddr *)&saCliAddr, &slAddrLen)) == -1) {
 		perror("recvform");
 		return false;
