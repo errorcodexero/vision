@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <signal.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -17,12 +18,16 @@
 #include "utils/network.hpp"
 
 int main (int argc, char* argv[]) {
-	Server server((char*) "6425", SOCK_STREAM, 0, 1, false);
-	if(!server.bBroadcast((char*) "Hello\n") && !server.bBroadcast((char*) "World\n")) {
-		cout << "ERROR" << endl;
-		server.~Server();
-	}
-	else
+	Client client((char* ) "127.0.0.1",(char*) "6425", SOCK_STREAM, (char*) "\n");
+	client.bRecv();
+	cout << client.szGetData();
+	if(client.szGetData() == (char*) "Hello World!\n") {
 		cout << "Success!" << endl;
-	server.~Server();
+		client.~Client();
+	}
+	else {
+		cout << "ERROR" << endl;
+		client.~Client();
+	}
+
 }

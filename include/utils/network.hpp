@@ -1,4 +1,5 @@
 #include <mutex>
+#include <atomic>
 
 extern "C" {
 #include <stdio.h>
@@ -28,11 +29,13 @@ void *getInAddr(struct sockaddr *sa);
  */
 class Client {
 public:
-	Client(char* _szIP, char* _szPort, int _iSockType);
+	Client(char* _szIP, char* _szPort, int _iSockType, char* _szDilimiter);
 	virtual ~Client();
 
 	bool bRecv();	//TCP
 	bool bSendTo(char* _szBuf); //UDP
+
+	char* szGetData();
 
 	bool bNewIP(char* _szIP);
 protected:
@@ -46,6 +49,7 @@ private:
 	int iSockType;
 
 	const char* szPORT;
+	char* szDelimiter;
 	char* szIP;
 	char* szBuf;
 	char szS[INET6_ADDRSTRLEN];
@@ -59,6 +63,8 @@ public:
 
 	Server(char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant);
 	virtual ~Server();
+
+	char* szGetData();
 
 	bool bBroadcast(char* _szBuf); //Only use if your using TCP sockets
 	bool bListen(); //Only use if your using UDP sockets

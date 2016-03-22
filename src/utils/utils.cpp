@@ -8,14 +8,15 @@ vector <char* > vszParseString( char* _szString, char* _szDilimiter) {
 
 	unsigned int uiIndex = 0;
 
-	char szTmpBuf[1];
-	char* szCurrStr = (char *) malloc ( sizeof _szString * sizeof (char ) );
+	char* szTmpBuf = (char *) malloc(sizeof (char));
+	char* szCurrStr = (char* ) malloc(sizeof _szString + 1);
+	szCurrStr[0] = '\0';
 	vector <char* > vszBuf_;
 
 
 	do {
 		szTmpBuf[0] = _szString[uiIndex];
-		if (&szTmpBuf[0] == _szDilimiter || szTmpBuf[0] == '\n') {
+		if (strcmp(szTmpBuf, _szDilimiter) == 0 || strcmp(szTmpBuf, (char* ) "\n") == 0) {
 			vszBuf_.push_back(szCurrStr);
 			iCurrVec++;
 			memset(szCurrStr, 0, sizeof(&szCurrStr));
@@ -24,7 +25,8 @@ vector <char* > vszParseString( char* _szString, char* _szDilimiter) {
 			szCurrStr[uiIndex] = szTmpBuf[0];
 			uiIndex++;
 		}
-	} while (uiIndex < strlen(_szString));
+		//cout << "\n" << iCurrVec << "."<< szTmpBuf << "\n";
+	} while (uiIndex <= strlen(_szString));
 	return vszBuf_;
 }
 
@@ -33,18 +35,22 @@ void exitWithError(std::string _strErrorMsg, int _iExitNumber) {
 	exit(_iExitNumber);
 }
 
-char* szTruncateByDelimiter(char* _szBuf, char* _szDilimiter) {
+char* szTruncateByDelimiter(char* _szBuf, char* _szDelimiter) {
 	int index = 0;
 
-	char* szBuf = new char[sizeof _szBuf];
-	char cTmpBuf;
+	char* szBuf = (char *) malloc (sizeof _szBuf);
+	char* szTmpBuf = (char *) malloc(sizeof (char));
 
 	do {
-		cTmpBuf = _szBuf[index];
-		if (&cTmpBuf == _szDilimiter)
+		if (index > (int) sizeof _szBuf)
+			return _szBuf;
+		szTmpBuf[0] = _szBuf[index];
+		if (strcmp(szTmpBuf, _szDelimiter) == 0)
 			break;
 		szBuf[index] = _szBuf[index];
-	} while (&cTmpBuf != _szDilimiter);
+		cout << szTmpBuf;
+		index++;
+	} while (strcmp(szTmpBuf, _szDelimiter) != 0);
 	return szBuf;
 }
 
@@ -54,7 +60,7 @@ bool bIsStringIP( char* _szString) {
 	vector <char* > vszBuf_;
 	vszBuf_ = vszParseString(_szString, (char *) ".");
 
-	if (vszBuf_.size() >= 5) {
+	if (vszBuf_.size() == 3) {
 		for (uint32 i = 0; i < vszBuf_.size(); i++) {
 			if(sscanf("%d", vszBuf_[i], &value) < 1)
 				break;
