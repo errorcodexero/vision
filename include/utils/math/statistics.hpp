@@ -6,6 +6,7 @@
 static const double e = 2.71828182845904523536028747135266249775724709369995;
 static const double pi = 3.14159265358979323846264338327950288419716939937510;
 static const double phi = 1.61803398874989484820458683436563811772030917980576;
+static const double tau = 2 * pi;
 
 template <class T >
 T getMin (std::vector < T> input) {

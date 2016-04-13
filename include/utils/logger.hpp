@@ -16,12 +16,17 @@
 
 #define LOG_NAME "vision.log"
 
+std::string sGetFormattedTime();
+
 enum EventID { CRASH, HANG, SOCKET_DISCONNET, SOCKET_CONNECT, SOCKET_HANG, SOCKET_RECIEVE, SOCKET_SEND, OTHER};
 
 class Event {
 public:
 
 	Event(EventID EventID, std::string sEventMsg);
+	~Event();
+	EventID EventID;
+	std::string sEventMsg;
 
 protected:
 
@@ -35,7 +40,7 @@ private:
 
 class LogWriter {
 
-	LogWriter(std::string sFilePath);
+	LogWriter(std::string sFilePath = "");
 	~LogWriter();
 public:
 
