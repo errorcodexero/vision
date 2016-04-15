@@ -18,16 +18,4 @@
 #include "utils/network.hpp"
 
 int main (int argc, char* argv[]) {
-	Client client((char* ) "127.0.0.1",(char*) "6425", SOCK_STREAM, (char*) "\n");
-	client.bRecv();
-	cout << client.szGetData();
-	if(client.szGetData() == (char*) "Hello World!\n") {
-		cout << "Success!" << endl;
-		client.~Client();
 	}
-	else {
-		cout << "ERROR" << endl;
-		client.~Client();
-	}
-
-}

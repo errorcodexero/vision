@@ -2,27 +2,26 @@
 
 using namespace std;
 
-vector <char* > vszParseString( char* _szString, char* _szDilimiter) {
+vector <char* > vszParseString( const char* _szString, char _szDilimiter) {
 
 	int iCurrVec = 0;
 
 	unsigned int uiIndex = 0;
 
-	char* szTmpBuf = (char *) malloc(sizeof (char));
-	char* szCurrStr = (char* ) malloc(sizeof _szString + 1);
-	szCurrStr[0] = '\0';
+	char szTmpBuf;
+	char* szCurrStr = '\0';
 	vector <char* > vszBuf_;
 
 
 	do {
-		szTmpBuf[0] = _szString[uiIndex];
-		if (strcmp(szTmpBuf, _szDilimiter) == 0 || strcmp(szTmpBuf, (char* ) "\n") == 0) {
+		szTmpBuf = _szString[uiIndex];
+		if (szTmpBuf == _szDilimiter|| szTmpBuf == '\n') {
 			vszBuf_.push_back(szCurrStr);
 			iCurrVec++;
 			memset(szCurrStr, 0, sizeof(&szCurrStr));
 			uiIndex++;
 		} else {
-			szCurrStr[uiIndex] = szTmpBuf[0];
+			szCurrStr[uiIndex] = szTmpBuf;
 			uiIndex++;
 		}
 		//cout << "\n" << iCurrVec << "."<< szTmpBuf << "\n";
@@ -35,33 +34,33 @@ void exitWithError(std::string _strErrorMsg, int _iExitNumber) {
 	exit(_iExitNumber);
 }
 
-char* szTruncateByDelimiter(char* _szBuf, char* _szDelimiter) {
+char* szTruncateByDelimiter(char* _szBuf, char _szDelimiter) {
 	int index = 0;
 
-	char* szBuf = (char *) malloc (sizeof _szBuf);
-	char* szTmpBuf = (char *) malloc(sizeof (char));
+	char* szBuf = '\0';
+	char* szTmpBuf = '\0';
 
 	do {
 		if (index > (int) sizeof _szBuf)
 			return _szBuf;
 		szTmpBuf[0] = _szBuf[index];
-		if (strcmp(szTmpBuf, _szDelimiter) == 0)
+		if (szTmpBuf == &_szDelimiter)
 			break;
 		szBuf[index] = _szBuf[index];
 		cout << szTmpBuf;
 		index++;
-	} while (strcmp(szTmpBuf, _szDelimiter) != 0);
+	} while (szTmpBuf != &_szDelimiter);
 	return szBuf;
 }
 
-bool bIsStringIP( char* _szString) {
+bool bIsStringIP( const char* _szString) {
 	int value = 0;
 	bool bIsLessThan256 = false;
 	vector <char* > vszBuf_;
-	vszBuf_ = vszParseString(_szString, (char *) ".");
+	vszBuf_ = vszParseString(_szString, '.');
 
 	if (vszBuf_.size() == 3) {
-		for (uint32 i = 0; i < vszBuf_.size(); i++) {
+		for (unsigned int i = 0; i < vszBuf_.size(); i++) {
 			if(sscanf("%d", vszBuf_[i], &value) < 1)
 				break;
 			if (value <= 256 && value >= 0)

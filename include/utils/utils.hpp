@@ -16,13 +16,14 @@
 
 void exitWithError(std::string _strErrorMsg, int _iExitNumber);
 
-bool bIsStringIP(char * _szString);
+bool bIsStringIP(const char * _szString);
 
-char* szTruncateByDelimiter(char* _szBuf, char* _szDilimiter);
+char* szTruncateByDelimiter(const char* _szBuf, char _szDilimiter);
 
-std::vector <char* > vszParseString(char* _szString, char * _szDilimiter);
+std::vector <char* > vszParseString(const char* _szString, char _szDilimiter);
 
 //Declare some more types
+/*
 typedef unsigned char byte;
 typedef unsigned short word;
 typedef unsigned long dword;
@@ -43,4 +44,6 @@ typedef int int32;
 
 
 //Done with types
+*/
 #endif /* _UTILS_H_*/
+

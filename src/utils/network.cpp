@@ -37,19 +37,19 @@ void sigChildHandler(int s)
 
     errno = saved_errno;
 }
-Client::Client(char* _szIP, char* _szPort, int _iSockType, char* _szDelimiter) {
+Client::Client(const char* _szIP, const char* _szPort, int _iSockType, char _szDelimiter = '\n') {
 	vector <char* > vszIP;
-	int iPort = 0; //Only a temporary, validation value
+	//int iPort = 0; //Only a temporary, validation value
 	//do some validation
-	vszIP = vszParseString(_szIP, (char *) ".");
+	//vszIP = vszParseString(_szIP, '.');
 	//cout << vszIP.size() << "\n";
-	if (vszIP.size() != 3)
-		exitWithError("Not a valid IP", 3);
+	//if (vszIP.size() != 3)
+		//exitWithError("Not a valid IP", 3);
 
-	if (sscanf(_szPort, "%d", &iPort) < 1)
-		exitWithError("Port Number contains no integers", 5);
-	if (iPort > 65535 || iPort < 0)
-		exitWithError("Port number is not valid", 4);
+	//if (sscanf(_szPort, "%d", &iPort) < 1)
+	//	exitWithError("Port Number contains no integers", 5);
+	//if (iPort > 65535 || iPort < 0)
+	//	exitWithError("Port number is not valid", 4);
 
 	//Set up necessary local variables
 	this->szPORT = _szPort;
@@ -57,7 +57,7 @@ Client::Client(char* _szIP, char* _szPort, int _iSockType, char* _szDelimiter) {
 	this->iSockType = _iSockType;
 	this->iNumBytes = 0;
 	this->szDelimiter = _szDelimiter;
-	this->szBuf = (char *)malloc(sizeof(char) * 512);
+	this->szBuf[0] = '\0';
 
 	memset(&aiHints, 0, sizeof aiHints);
 	aiHints.ai_family = AF_UNSPEC;
@@ -65,7 +65,7 @@ Client::Client(char* _szIP, char* _szPort, int _iSockType, char* _szDelimiter) {
 
 	if ((this->iRV = getaddrinfo(this->szIP, this->szPORT, &this->aiHints, &this->aiServInfo)) != 0) {
 		fprintf(stderr, "getAddrInfo: %s\n", gai_strerror(iRV));
-		exit(1);
+		//exit(1);
 	}
 
 	for(this->aiP = this->aiServInfo; this->aiP != NULL; this->aiP = this->aiP->ai_next) {
@@ -95,6 +95,7 @@ Client::Client(char* _szIP, char* _szPort, int _iSockType, char* _szDelimiter) {
 
 	inet_ntop(this->aiP->ai_family, getInAddr((struct sockaddr *)this->aiP->ai_addr),
 	            this->szS, sizeof this->szS);
+	//fcntl(this->iSockfd, F_SETFL, O_NONBLOCK);
 	printf("client: connecting to %s\n", this->szS);
 
 	freeaddrinfo(this->aiServInfo);
@@ -107,25 +108,30 @@ Client::~Client() {
 }
 
 bool Client::bRecv() {
-	uint32 index = 0;
+	unsigned int i = 0;
 	char szTmpBuffer[1];
+	if (this->iSockfd == -1)
+		exit(1);
 	if(this->iSockType == SOCK_STREAM) {
-		cout << sizeof this->szBuf << "\n";
+		//cout << sizeof this->szBuf << "\n";
 		do	{
-			if ((this->iNumBytes = recv(this->iSockfd, szTmpBuffer, 1, 0)) == -1) {
+			if ((this->iNumBytes = recv(this->iSockfd, szTmpBuffer, 1, 0)) == -1 /* && cout << szTmpBuffer*/) {
 				return false;
 			} else {
-				index++;
+				i++;
 				//this->szBuf[0] = szTruncateByDelimiter(&this->szBuf[0], this->szDelimiter);
-				if (index > 512){
-					//break;
+				if (i > sizeof szBuf - 1){
+					break;
 				}
-				snprintf(this->szBuf, 512,"%s%c", this->szBuf, szTmpBuffer[1]);
-				cout << szTmpBuffer;
-				szTmpBuffer[0] = '\0';
+				//cout << index;
+				this->szBuf[i] = szTmpBuffer[0];
+				//cout << szTmpBuffer << " "<< this->szBuf[i] << "\n";
+				//szTmpBuffer[0] = '\0';
 			}
 
-		} while (&szTmpBuffer[0] != this->szDelimiter);
+		} while (szTmpBuffer[0] != this->szDelimiter);
+		cout << this->szBuf;
+
 		return true;
 	} else {
 		cout << "Error: Not Stream Socket\n";
@@ -134,7 +140,7 @@ bool Client::bRecv() {
 	return false;
 }
 
-bool Client::bSendTo(char* _szBuf) {
+bool Client::bSendTo(const char* _szBuf) {
 	if(this->iSockType == SOCK_DGRAM) {
 		if ((this->iNumBytes = sendto(this->iSockfd, _szBuf, strlen(_szBuf), 0, aiP->ai_addr, aiP->ai_addrlen)) == -1) {
 		        perror("talker: sendto");
@@ -149,7 +155,7 @@ bool Client::bSendTo(char* _szBuf) {
 	}
 }
 
-bool Client::bNewIP(char* _szIP) {
+/*bool Client::bNewIP(const char* _szIP) {
 #ifdef DEBUG
 	cout << "NOTE: This function clears the buffer\n";
 #endif
@@ -164,14 +170,14 @@ bool Client::bNewIP(char* _szIP) {
 		return false;
 
 	return true;
-}
+}*/
 
 
 char* Client::szGetData() {
 	return this->szBuf;
 }
 
-Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant) {
+Server::Server (const char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant) {
 
 	this->szPORT = _szPort;
 	this->iSockType = _iSockType;
@@ -190,7 +196,7 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 
 	if ((iRV = getaddrinfo(NULL, this->szPORT, &aiHints, &aiServInfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(iRV));
-		exit(1);
+		//exit(1);
 	}
 
 	for (this->aiP = this->aiServInfo; this->aiP != NULL; this->aiP = this->aiP->ai_next) {
@@ -215,7 +221,7 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 	}
 	if (this->aiP == NULL) {
 		fprintf(stderr, "Server: failed to bind socket\n");
-		exit(2);
+		//exit(2);
 	}
 
 	freeaddrinfo(aiServInfo);
@@ -225,7 +231,7 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 		if (listen(this->iSockfd, this->iBacklog) == -1) {
 
 			perror("Listen");
-			exit(1);
+			//exit(1);
 		}
 
 		this->sa.sa_handler = sigChildHandler;
@@ -234,7 +240,7 @@ Server::Server (char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMax
 		if (sigaction(SIGCHLD, &this->sa, NULL) == -1) {
 
 			perror("sigaction");
-			exit(1);
+			//exit(1);
 		}
 
 	} else if (this->iSockType == SOCK_DGRAM) {
@@ -266,9 +272,9 @@ Server::~Server() {
 	}
 }
 
-bool Server::bBroadcast(char* _szBuf) {
-	uint32 i = 0; //for sake of comparison errors
-	this->szBuf = _szBuf;
+bool Server::bBroadcast(const char* _szBuf) {
+	unsigned int i = 0; //for sake of comparison errors
+	//this->szBuf = _szBuf;
 
 	while (i < this->iMaxClients) {
 		cout << i << "\n";
@@ -284,10 +290,10 @@ bool Server::bBroadcast(char* _szBuf) {
 		if (!fork()) {
 			close(this->iSockfd);
 			int iBufLen = strlen(this->szBuf);
-			if (sendAll(this->iNewfd, this->szBuf, &iBufLen) == -1)
+			if (sendAll(this->iNewfd, (char *)_szBuf, &iBufLen) == -1)
 				return false;
 			//close(this->iNewfd);
-			exit(0);
+			//exit(0);
 		}
 		close(this->iNewfd);
 		i++;

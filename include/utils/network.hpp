@@ -1,6 +1,3 @@
-#include <mutex>
-#include <atomic>
-
 extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,22 +19,18 @@ extern "C" {
 #include "utils/utils.hpp"
 
 void *getInAddr(struct sockaddr *sa);
-/** \brief A Simple client class for any networking needs
- *
- *
- *	Create an instance of the Client class to open a socket on a given port, with either TCP or UDP, and be able to act as a talker or a client
- */
+
 class Client {
 public:
-	Client(char* _szIP, char* _szPort, int _iSockType, char* _szDilimiter);
+	Client(const char* _szIP, const char* _szPort, int _iSockType, char _szDelimiter);
 	virtual ~Client();
 
 	bool bRecv();	//TCP
-	bool bSendTo(char* _szBuf); //UDP
+	bool bSendTo(const char* _szBuf); //UDP
 
 	char* szGetData();
 
-	bool bNewIP(char* _szIP);
+	//bool bNewIP(const char* _szIP);
 protected:
 
 
@@ -49,10 +42,10 @@ private:
 	int iSockType;
 
 	const char* szPORT;
-	char* szDelimiter;
-	char* szIP;
-	char* szBuf;
+	const char* szIP;
+	char szBuf[512];
 	char szS[INET6_ADDRSTRLEN];
+	char szDelimiter;
 
 	struct addrinfo aiHints, *aiServInfo, *aiP;
 
@@ -61,12 +54,12 @@ private:
 class Server {
 public:
 
-	Server(char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant);
+	Server(const char* _szPort, int _iSockType, int _iBacklog, unsigned int _iMaxClients, bool _bIsPersistant);
 	virtual ~Server();
 
 	char* szGetData();
 
-	bool bBroadcast(char* _szBuf); //Only use if your using TCP sockets
+	bool bBroadcast(const char* _szBuf); //Only use if your using TCP sockets
 	bool bListen(); //Only use if your using UDP sockets
 
 
@@ -85,7 +78,7 @@ private:
 
 	bool bIsPersistant;
 
-	uint32 iMaxClients;
+	unsigned int iMaxClients;
 
 	char szS[INET6_ADDRSTRLEN];
 	char* szBuf;
