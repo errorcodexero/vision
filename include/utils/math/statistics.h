@@ -1,7 +1,7 @@
 #ifndef _MATH_STATISTICS_H_
 #define _MATH_STATISTICS_H_
 
-#include "utils/math/math.hpp"
+#include "math.hpp"
 
 static const double e = 2.71828182845904523536028747135266249775724709369995;
 static const double pi = 3.14159265358979323846264338327950288419716939937510;

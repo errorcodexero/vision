@@ -1,8 +1,8 @@
-#include <ctime>
+/*include <ctime>
 
 using namespace std;
 
-#include "utils/logger.hpp"
+#include "utils/logger.h"
 
 Event::Event(EventID eventID, std::string sEventMsg) {
 	this->EventID = EventID;
@@ -32,3 +32,4 @@ LogWriter::LogWriter(string sFilePath) {
 void LogWriter::writeLogEvent(string sTime, Event logEvent) {
 	this->ofFile << sTime << " " << logEvent.EventID << " : " << logEvent.sEventMsg;
 }
+*/

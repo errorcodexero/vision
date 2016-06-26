@@ -1,6 +1,6 @@
 #ifndef _LOGGER_HPP_
 #define _LOGGER_HPP_
-
+/*
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -36,7 +36,7 @@ private:
 
 
 
-};
+};*/
 
 class LogWriter {
 
